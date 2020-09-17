@@ -59,7 +59,7 @@ namespace WishlistAPI.Controllers
                     {
                         new WishlistItem
                         {
-                            Description = "Vidya james"
+                            Description = "Vidya jaymes"
                         },
                         new WishlistItem
                         {
