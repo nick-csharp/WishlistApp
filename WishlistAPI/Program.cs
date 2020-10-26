@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Documents;
+using Microsoft.Azure.Documents.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 
 namespace WishlistAPI
 {
@@ -15,6 +19,12 @@ namespace WishlistAPI
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
-                });
+                })
+                .ConfigureServices((context, serviceCollection) =>
+                    serviceCollection
+                        .AddSingleton<IDocumentClient>(x =>
+                            new DocumentClient(new Uri(context.Configuration["CosmosDBEndpoint"]), context.Configuration["CosmosDBKey"]))
+                        .AddScoped<IWishlistService, WishlistService>()
+                );
     }
 }

@@ -1,86 +1,70 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using WishlistAPI.Models;
 
 namespace WishlistAPI.Controllers
 {
-    [Route("[controller]")]
+    [Route("api/people/{personId}/[controller]")]
     [ApiController]
     public class WishlistController : ControllerBase
     {
-        private static readonly Whanau _whanau = new Whanau
-        {
-            WhanauId = 1,
-            Name = "Smith",
-            People = new List<Person> 
-            { 
-                new Person 
-                { 
-                    PersonId = 29, 
-                    Name = "Jimmy", 
-                    WishlistItems = new List<WishlistItem>
-                    {
-                        new WishlistItem
-                        {
-                            Description = "Books"
-                        },
-                        new WishlistItem
-                        {
-                            Description = "Socks"
-                        },
-                    }
-                },
-                new Person
-                {
-                    PersonId = 32,
-                    Name = "James",
-                    WishlistItems = new List<WishlistItem>
-                    {
-                        new WishlistItem
-                        {
-                            Description = "Treetz"
-                        },
-                        new WishlistItem
-                        {
-                            Description = "Undies"
-                        },
-                    }
-                },
-                new Person
-                {
-                    PersonId = 69,
-                    Name = "Cameron",
-                    WishlistItems = new List<WishlistItem>
-                    {
-                        new WishlistItem
-                        {
-                            Description = "Vidya jaymes"
-                        },
-                        new WishlistItem
-                        {
-                            Description = "Tunes"
-                        },
-                    }
-                }
-            }
-        };
-
         private readonly ILogger<WishlistController> _logger;
+        private readonly IWishlistService _wishlistService;
 
-        public WishlistController(ILogger<WishlistController> logger)
+        public WishlistController(ILogger<WishlistController> logger, IWishlistService wishlistService)
         {
             _logger = logger;
+            _wishlistService = wishlistService;
         }
 
         [HttpGet]
-        public Whanau Get(int whanauId)
+        public async Task<ActionResult<List<WishlistItemDto>>> GetWishlist(string personId)
         {
-            return _whanau;
+            string requestingId = "1";
+            //return _wishlistService.GetWishlist(personId, requestingId);
+            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, requestingId);
+
+            return result.ToList();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddWishlistItem(string personId, WishlistItemDto wishlistItem)
+        {
+            // validate person is manipulating their own wishlist
+            var result = await _wishlistService.AddWishlistItemAsync(wishlistItem);
+            return CreatedAtAction(nameof(GetWishlist), result.Id, result);
+        }
+
+        [HttpPut("{wishlistItemId}")]
+        public async Task<IActionResult> EditWishlistItem(string personId, WishlistItemDto wishlistItem)
+        {
+            // validate person is manipulating their own wishlist
+            await _wishlistService.EditWishlistItemAsync(personId, wishlistItem);
+
+            return NoContent();
+        }
+
+        [HttpDelete("{wishlistItemId}")]
+        public async Task<IActionResult> DeleteWishlistItem(string personId, string wishlistItemId)
+        {
+            // validate person is manipulating their own wishlist
+            await _wishlistService.DeleteWishlistItemAsync(personId, wishlistItemId);
+
+            throw new NotImplementedException();
+        }
+        
+        [HttpPatch("{wishlistItemId}/claim")]
+        public async Task<IActionResult> ClaimWishlistItem(string personId, string wishlistItemId)
+        {
+            // validate person is manipulating someone else's wishlist
+            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, "5fe116ac-19e9-401b-8f3a-6674996865b5");
+
+            return NoContent();
         }
     }
 }

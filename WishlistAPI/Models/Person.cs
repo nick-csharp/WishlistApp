@@ -9,7 +9,5 @@ namespace WishlistAPI.Models
     {
         public int PersonId { get; set; }
         public string Name { get; set; }
-        public int WhanauId { get; set; }
-        public IEnumerable<WishlistItem> WishlistItems { get; set; }
     }
 }

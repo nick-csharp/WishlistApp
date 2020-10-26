@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -6,13 +7,21 @@ using System.Threading.Tasks;
 namespace WishlistAPI.Models
 {
     public class WishlistItem
-    {
-        public int WishlistItemId { get; set; }
-        public int PersonId { get; set; }
-        public string Description { get; set; }
-        public string Notes { get; set; }
-        public bool IsDeleted { get; set; }
-        public int Year { get; set; } = 2020;
-        public bool? IsClaimed { get; set; }
+	{
+		[JsonProperty(PropertyName = "id")]
+		public string Id { get; set; }
+
+		[JsonProperty(PropertyName = "userId")]
+		public string UserId { get; set; }
+
+		[JsonProperty(PropertyName = "description")]
+		public string Description { get; set; }
+
+		[JsonProperty(PropertyName = "createdDate")]
+		public string CreatedDate { get; set; }
+
+		[JsonProperty(PropertyName = "claimedByUserId")]
+		public string ClaimedByUserId { get; set; }
+
     }
 }
