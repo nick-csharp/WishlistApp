@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -22,8 +21,19 @@ namespace WishlistAPI
                 })
                 .ConfigureServices((context, serviceCollection) =>
                     serviceCollection
-                        .AddSingleton<IDocumentClient>(x =>
-                            new DocumentClient(new Uri(context.Configuration["CosmosDBEndpoint"]), context.Configuration["CosmosDBKey"]))
+                        .AddSingleton(s =>
+                        {
+                            var endpoint = context.Configuration["CosmosDBEndpoint"];
+                            var key = context.Configuration["CosmosDBKey"];
+
+                            if (string.IsNullOrEmpty(endpoint))
+                                throw new InvalidOperationException("Missing CosmosDBEndpoint in appsettings.json");
+
+                            if (string.IsNullOrEmpty(key))
+                                throw new InvalidOperationException("Missing CosmosDBKey in appsettings.json");
+
+                            return new CosmosClientBuilder(endpoint, key).Build();
+                        })
                         .AddScoped<IWishlistService, WishlistService>()
                 );
     }

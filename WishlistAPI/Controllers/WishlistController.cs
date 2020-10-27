@@ -9,7 +9,7 @@ using WishlistAPI.Models;
 
 namespace WishlistAPI.Controllers
 {
-    [Route("api/people/{personId}/[controller]")]
+    [Route("person/{personId}/[controller]")]
     [ApiController]
     public class WishlistController : ControllerBase
     {
@@ -26,7 +26,6 @@ namespace WishlistAPI.Controllers
         public async Task<ActionResult<List<WishlistItemDto>>> GetWishlist(string personId)
         {
             string requestingId = "1";
-            //return _wishlistService.GetWishlist(personId, requestingId);
             var result = await _wishlistService.GetAllWishlistItemsAsync(personId, requestingId);
 
             return result.ToList();
@@ -37,7 +36,8 @@ namespace WishlistAPI.Controllers
         {
             // validate person is manipulating their own wishlist
             var result = await _wishlistService.AddWishlistItemAsync(wishlistItem);
-            return CreatedAtAction(nameof(GetWishlist), result.Id, result);
+
+            return CreatedAtAction(nameof(GetWishlist), new { personId, result.Id }, result); ;
         }
 
         [HttpPut("{wishlistItemId}")]
@@ -46,7 +46,7 @@ namespace WishlistAPI.Controllers
             // validate person is manipulating their own wishlist
             await _wishlistService.EditWishlistItemAsync(personId, wishlistItem);
 
-            return NoContent();
+            return Ok();
         }
 
         [HttpDelete("{wishlistItemId}")]
@@ -55,7 +55,7 @@ namespace WishlistAPI.Controllers
             // validate person is manipulating their own wishlist
             await _wishlistService.DeleteWishlistItemAsync(personId, wishlistItemId);
 
-            throw new NotImplementedException();
+            return NoContent();
         }
         
         [HttpPatch("{wishlistItemId}/claim")]
@@ -64,7 +64,7 @@ namespace WishlistAPI.Controllers
             // validate person is manipulating someone else's wishlist
             await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, "5fe116ac-19e9-401b-8f3a-6674996865b5");
 
-            return NoContent();
+            return Ok();
         }
     }
 }

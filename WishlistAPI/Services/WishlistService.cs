@@ -1,7 +1,8 @@
-﻿using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
-using Microsoft.Azure.Documents.Linq;
+﻿using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
+using Microsoft.Azure.Cosmos.Scripts;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,24 +13,29 @@ namespace WishlistAPI
 {
     public interface IWishlistService
     {
-        Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string ownerId, string requestingId);
+        Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string ownerUserId, string requestingUserId);
         Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto);
-        Task EditWishlistItemAsync(string ownerId, WishlistItemDto wishlistItemDto);
-        Task DeleteWishlistItemAsync(string ownerId, string wishlistItemId);
-        Task ClaimWishlistItemAsync(string ownerId, string wishlistItemId, string claimerId);
+        Task EditWishlistItemAsync(string ownerUserId, WishlistItemDto wishlistItemDto);
+        Task DeleteWishlistItemAsync(string ownerUserId, string wishlistItemId);
+        Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId);
     }
 
     public class WishlistService : IWishlistService
     {
-        private readonly IDocumentClient _documentClient;
-        private readonly string _wishlistDatabase;
-        private readonly string _wishlistCollection;
+        private readonly ILogger<WishlistService> _logger;
 
-        public WishlistService(IConfiguration configuration, IDocumentClient documentClient)
+        private readonly Container _container;
+        private readonly string _databaseId;
+        private readonly string _containerId;
+
+        public WishlistService(IConfiguration configuration, ILogger<WishlistService> logger, CosmosClient cosmosClient)
         {
-            _documentClient = documentClient;
-            _wishlistDatabase = configuration.GetValue<string>("WishlistDbName");
-            _wishlistCollection = configuration.GetValue<string>("WishlistCollectionName");
+            _logger = logger;
+
+            _databaseId = configuration.GetValue<string>("WishlistDbId");
+            _containerId = configuration.GetValue<string>("WishlistsContainerId");
+
+            _container = cosmosClient.GetContainer(_databaseId, _containerId);
         }
         
         public async Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string ownerId, string requestingId)
@@ -38,15 +44,19 @@ namespace WishlistAPI
             {
                 var wishlistItems = new List<WishlistItem>();
 
-                var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_wishlistDatabase, _wishlistCollection);
-                var queryable = _documentClient.CreateDocumentQuery<WishlistItem>(documentCollectionUri, new FeedOptions { EnableCrossPartitionQuery = true })
-                    .Where(item => item.UserId == ownerId)
-                    .AsDocumentQuery();
-
-                while (queryable.HasMoreResults)
+                var queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(ownerId) };
+                using (var setIterator = _container.GetItemLinqQueryable<WishlistItem>(requestOptions: queryRequestOptions)
+                    .ToFeedIterator())
                 {
-                    var response = await queryable.ExecuteNextAsync<WishlistItem>();
-                    wishlistItems.AddRange(response);
+                    while (setIterator.HasMoreResults)
+                    {
+                        var response = await setIterator.ReadNextAsync();
+
+                        _logger.LogInformation("Request charge of get operation: {0}", response.RequestCharge);
+                        _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+
+                        wishlistItems.AddRange(response);
+                    }
                 }
 
                 var requesterIsOwner = ownerId == requestingId;
@@ -65,74 +75,93 @@ namespace WishlistAPI
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Exception while getting wishlist items.");
                 throw;
             }
         }
 
         public async Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto)
         {
-            var wishlistItem = new WishlistItem
+            try
             {
-                UserId = wishlistItemDto.UserId,
-                Description = wishlistItemDto.Description,
-                ClaimedByUserId = null,
-                CreatedDate = DateTime.Now.ToString()
-            };
+                var wishlistItem = new WishlistItem(wishlistItemDto.UserId, wishlistItemDto.Description);
 
-            var documentCollectionUri = UriFactory.CreateDocumentCollectionUri(_wishlistDatabase, _wishlistCollection);
-            var result = await _documentClient.CreateDocumentAsync(documentCollectionUri, wishlistItem);
+                ItemResponse<WishlistItem> response = await _container.CreateItemAsync(wishlistItem, new PartitionKey(wishlistItem.UserId));
 
-            return new WishlistItemDto
+                _logger.LogInformation("Request charge of create operation: {0}", response.RequestCharge);
+                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+
+                return new WishlistItemDto
+                {
+                    Id = response.Resource.Id,
+                    Description = response.Resource.Description,
+                    UserId = response.Resource.UserId,
+                    IsClaimable = false,
+                    IsClaimedByMe = false
+                };
+            }
+            catch (Exception e)
             {
-                Id = result.Resource.Id,
-                Description = wishlistItem.Description,
-                UserId = wishlistItem.UserId,
-                IsClaimable = false,
-                IsClaimedByMe = false
-            };
+                _logger.LogError(e, "Exception while adding wishlist item.");
+                throw;
+            }
         }
 
         public async Task EditWishlistItemAsync(string ownerId, WishlistItemDto wishlistItemDto)
         {
             try 
-            { 
-               //dynamic[] parameters = new dynamic[]
-               //{
-               //    new { wishlistItemId = wishlistItemDto.Id },
-               //    new { description = wishlistItemDto.Description }
-               //};
+            {
+                StoredProcedureExecuteResponse<string> response = 
+                    await _container.Scripts.ExecuteStoredProcedureAsync<string>(
+                        "updateWishlistItem",
+                        new PartitionKey(ownerId),
+                        new dynamic[] { wishlistItemDto.Id, wishlistItemDto.Description });
 
-                await _documentClient.ExecuteStoredProcedureAsync<string>(
-                    UriFactory.CreateStoredProcedureUri(_wishlistDatabase, _wishlistCollection, "updateWishlistItem"), 
-                    new RequestOptions { PartitionKey = new PartitionKey(ownerId) },
-                    wishlistItemDto.Id,
-                    wishlistItemDto.Description
-                );
+                _logger.LogInformation("Request charge of edit operation: {0}", response.RequestCharge);
+                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Exception while editing wishlist item.");
                 throw;
             }
         }
 
-        public async Task DeleteWishlistItemAsync(string ownerId, string wishlistItemId)
-        {
-            await _documentClient.DeleteDocumentAsync(UriFactory.CreateDocumentUri(_wishlistDatabase, _wishlistCollection, wishlistItemId.ToString()));
-        }
-
-        public async Task ClaimWishlistItemAsync(string ownerId, string wishlistItemId, string claimerId)
+        public async Task DeleteWishlistItemAsync(string ownerUserId, string wishlistItemId)
         {
             try
             {
-                await _documentClient.ExecuteStoredProcedureAsync<string>(
-                    UriFactory.CreateStoredProcedureUri(_wishlistDatabase, _wishlistCollection, "claimWishlistItem"),
-                    new RequestOptions { PartitionKey = new PartitionKey(ownerId) },
-                    wishlistItemId,
-                    claimerId
+                ItemResponse<WishlistItem> response = await _container.DeleteItemAsync<WishlistItem>(
+                    partitionKey: new PartitionKey(ownerUserId),
+                    id: wishlistItemId
                 );
+
+                _logger.LogInformation("Request charge of delete operation: {0}", response.RequestCharge);
+                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Exception while deleting wishlist item.");
+                throw;
+            }
+        }
+
+        public async Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId)
+        {
+            try
+            {
+                StoredProcedureExecuteResponse<string> response =
+                    await _container.Scripts.ExecuteStoredProcedureAsync<string>(
+                        "claimWishlistItem",
+                        new PartitionKey(ownerUserId),
+                        new dynamic[] { wishlistItemId, claimerUserId });
+
+                _logger.LogInformation("Request charge of claim operation: {0}", response.RequestCharge);
+                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception while claiming wishlist item.");
                 throw;
             }
         }
