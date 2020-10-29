@@ -4,10 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WishlistAPI.Models;
-using WishlistAPI.Services;
+using WishlistApp.Models;
+using WishlistApp.Services;
 
-namespace WishlistAPI.Controllers
+namespace WishlistApp.Controllers
 {
     [Route("[controller]")]
     [ApiController]
