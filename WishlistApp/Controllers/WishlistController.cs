@@ -9,7 +9,7 @@ using WishlistApp.Models;
 
 namespace WishlistApp.Controllers
 {
-    [Route("person/{personId}/[controller]")]
+    [Route("api/person/{personId}/[controller]")]
     [ApiController]
     public class WishlistController : ControllerBase
     {
