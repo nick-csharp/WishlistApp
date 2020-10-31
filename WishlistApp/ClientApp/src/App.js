@@ -1,21 +1,23 @@
 import React, { Component } from 'react';
-import { Route } from 'react-router';
-import { Layout } from './components/Layout';
 import { Home } from './components/Home';
-import { FetchData } from './components/FetchData';
-import { Counter } from './components/Counter';
+import { Whanau } from './components/Whanau';
+import { Wishlist } from './components/Wishlist';
+import { navigate, Router } from "@reach/router";
 
 import './custom.css'
+import { Layout } from './components/Layout';
 
 export default class App extends Component {
-  static displayName = App.name;
 
   render () {
     return (
       <Layout>
-        <Route exact path='/' component={Home} />
-        <Route path='/counter' component={Counter} />
-        <Route path='/fetch-data' component={FetchData} />
+        <Router>
+
+          <Home path='/' />
+          <Whanau path='/whanau' />
+          <Wishlist path='/person/:id/wishlist' />
+        </Router>
       </Layout>
     );
   }
