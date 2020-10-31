@@ -4,6 +4,7 @@ using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using WishlistApp.Services;
 
 namespace WishlistApp
 {
@@ -25,6 +26,7 @@ namespace WishlistApp
                         .AddApplicationInsightsTelemetry()
                         .AddSingleton(s => GetCosmosClient(context))
                         .AddScoped<IWishlistService, WishlistService>()
+                        .AddScoped<IWhanauService, WhanauService>()
                 );
 
         private static CosmosClient GetCosmosClient(HostBuilderContext context)

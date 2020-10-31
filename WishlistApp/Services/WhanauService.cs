@@ -10,20 +10,20 @@ using WishlistApp.Models;
 
 namespace WishlistApp.Services
 {
-    public interface IPersonService 
+    public interface IWhanauService 
     {
-        Task<IEnumerable<Person>> GetAllPersonsAsync();
+        Task<IEnumerable<Person>> GetWhanauAsync(string whanauId);
     }
     
-    public class PersonService : IPersonService
+    public class WhanauService : IWhanauService
     {
-        private readonly ILogger<PersonService> _logger;
+        private readonly ILogger<WhanauService> _logger;
 
         private readonly Container _container;
         private readonly string _databaseId;
         private readonly string _containerId;
 
-        public PersonService(IConfiguration configuration, ILogger<PersonService> logger, CosmosClient cosmosClient)
+        public WhanauService(IConfiguration configuration, ILogger<WhanauService> logger, CosmosClient cosmosClient)
         {
             _logger = logger;
 
@@ -33,13 +33,14 @@ namespace WishlistApp.Services
             _container = cosmosClient.GetContainer(_databaseId, _containerId);
         }
 
-        public async Task<IEnumerable<Person>> GetAllPersonsAsync()
+        public async Task<IEnumerable<Person>> GetWhanauAsync(string whanauId)
         {
             try
             {
                 var persons = new List<Person>();
 
-                using (var setIterator = _container.GetItemLinqQueryable<Person>()
+                var queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(whanauId) };
+                using (var setIterator = _container.GetItemLinqQueryable<Person>(requestOptions: queryRequestOptions)
                     .ToFeedIterator())
                 {
                     while (setIterator.HasMoreResults)
