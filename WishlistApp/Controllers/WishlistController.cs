@@ -16,6 +16,8 @@ namespace WishlistApp.Controllers
         private readonly ILogger<WishlistController> _logger;
         private readonly IWishlistService _wishlistService;
 
+        private const string _requestingId = "5fe116ac-19e9-401b-8f3a-6674996865b5";
+
         public WishlistController(ILogger<WishlistController> logger, IWishlistService wishlistService)
         {
             _logger = logger;
@@ -25,8 +27,7 @@ namespace WishlistApp.Controllers
         [HttpGet]
         public async Task<ActionResult<List<WishlistItemDto>>> GetWishlist(string personId)
         {
-            string requestingId = "1";
-            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, requestingId);
+            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, _requestingId);
 
             return result.ToList();
         }
@@ -62,7 +63,16 @@ namespace WishlistApp.Controllers
         public async Task<IActionResult> ClaimWishlistItem(string personId, string wishlistItemId)
         {
             // validate person is manipulating someone else's wishlist
-            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, "5fe116ac-19e9-401b-8f3a-6674996865b5");
+            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _requestingId, true);
+
+            return Ok();
+        }
+
+        [HttpPatch("{wishlistItemId}/unclaim")]
+        public async Task<IActionResult> UnclaimWishlistItem(string personId, string wishlistItemId)
+        {
+            // validate person is manipulating someone else's wishlist
+            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _requestingId, false);
 
             return Ok();
         }
