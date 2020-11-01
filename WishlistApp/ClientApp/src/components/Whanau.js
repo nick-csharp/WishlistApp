@@ -1,5 +1,6 @@
 ﻿import React, { Component } from 'react';
 import { WhanauList } from './WhanauList';
+import { Loading } from './Loading';
 
 export class Whanau extends Component {
 
@@ -21,10 +22,9 @@ export class Whanau extends Component {
 
             <div className="row justify-content-center">
               <div className="col-md-6">
-                <WhanauList
-                  //userID={this.props.userID}
-                  whanau={this.state.whanau}
-                />
+                {this.state.loading
+                  ? <Loading />
+                  : <WhanauList whanau={this.state.whanau} />}
               </div>
             </div>
           </div>
@@ -36,6 +36,13 @@ export class Whanau extends Component {
   async populateWhanauData() {
     const response = await fetch('api/whanau/7c51567e-588b-4329-bfb9-361105853517');
     const data = await response.json();
+
+    data.sort(function (a, b) {
+      if (a.name < b.name) { return -1; }
+      if (a.name > b.name) { return 1; }
+      return 0;
+    });
+
     this.setState({ whanau: data, loading: false });
   }
 }

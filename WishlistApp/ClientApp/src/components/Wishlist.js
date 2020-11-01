@@ -1,12 +1,14 @@
 import React, { Component } from 'react';
-import { WishlistList } from './WishlistList'
+import { WishlistItems } from './WishlistItems'
+import { Loading } from './Loading'
 
 export class Wishlist extends Component {
 
   constructor(props) {
     super(props);
     this.state = {
-      wishlistData: []
+      wishlistData: [],
+      loading: true
     }
   }
 
@@ -15,17 +17,21 @@ export class Wishlist extends Component {
   }
 
   render() {
+    const name = this.props.location.state.person.name;
     return (
       <div className="container mt-4" >
         <div className="row justify-content-center">
-          <div className="col-11 col-md-6">
+          <div className="col-11 col-md-10">
             <div className="card border-top-0 rounded-0">
               <div className="card-header">
-                <h1 className="font-weight-light text-center">???'s Wishlist</h1>
+                <h1 className="font-weight-light text-center">{name}'s Wishlist</h1>
               </div>
 
               <div className="card-body">
-                <WishlistList wishlistData={this.state.wishlistData} />
+
+                {this.state.loading
+                  ? <Loading />
+                  : <WishlistItems wishlistData={this.state.wishlistData} personId={this.props.id} />}
               </div>
             </div>
           </div>

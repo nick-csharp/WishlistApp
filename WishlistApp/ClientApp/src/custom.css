@@ -8,5 +8,23 @@ code {
 }
 
 .color-nav {
-    background-color: #28a745;
+  background-color: #28a745;
+}
+
+.claimed-by-me .item-text,
+.claimed-by-other .item-text {
+  text-decoration: line-through;
+}
+
+.claimed-by-me {
+  background-color: rgba(40, 167, 60, 0.5);
+}
+
+.claimed-by-other {
+  background-color: rgba(174, 174, 174, 1);
+}
+
+
+.emoji-button {
+  background-color: white;
 }
