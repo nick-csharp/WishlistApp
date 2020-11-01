@@ -17,7 +17,7 @@ namespace WishlistApp
         Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto);
         Task EditWishlistItemAsync(string ownerUserId, WishlistItemDto wishlistItemDto);
         Task DeleteWishlistItemAsync(string ownerUserId, string wishlistItemId);
-        Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId);
+        Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId, bool isClaim);
     }
 
     public class WishlistService : IWishlistService
@@ -146,7 +146,7 @@ namespace WishlistApp
             }
         }
 
-        public async Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId)
+        public async Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId, bool isClaim)
         {
             try
             {
@@ -154,7 +154,7 @@ namespace WishlistApp
                     await _container.Scripts.ExecuteStoredProcedureAsync<string>(
                         "claimWishlistItem",
                         new PartitionKey(ownerUserId),
-                        new dynamic[] { wishlistItemId, claimerUserId });
+                        new dynamic[] { wishlistItemId, claimerUserId, isClaim });
 
                 _logger.LogInformation("Request charge of claim operation: {0}", response.RequestCharge);
                 _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
