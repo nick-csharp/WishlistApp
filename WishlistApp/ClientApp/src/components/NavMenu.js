@@ -9,6 +9,18 @@ export class NavMenu extends Component {
     super(props);
   }
 
+  getEmoji() {
+    const useOtherEmoji = Math.random() > 0.8;
+
+    if (useOtherEmoji) {
+      const emojis = ["🎅", "🎁", "🧦", "🤶", "📯", "🌟", "🌠", "👀", "🏖️"];
+      var index = Math.floor(Math.random() * emojis.length);
+      return emojis[index];
+    } else {
+      return ("🎄");
+    }   
+  }
+
   render() {
     const user = null;
     const logOutUser = null;
@@ -16,9 +28,9 @@ export class NavMenu extends Component {
     return (
       <nav className="navbar navbar-expand navbar-dark color-nav">
         <div className="container-fluid">
-          <Link to="/" className="navbar-brand">
-            <FaUsers className="mr-1" /> Meeting Log
-          </Link>
+          <div className="navbar-brand">
+            {this.getEmoji()} Wishlists
+          </div>
           <div className="navbar-nav ml-auto">
             {!user && (
               <Link className="nav-item nav-link" to="/whanau">
