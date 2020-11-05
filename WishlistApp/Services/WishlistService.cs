@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WishlistApp.Helpers;
 using WishlistApp.Models;
 
 namespace WishlistApp
@@ -159,10 +160,19 @@ namespace WishlistApp
                 _logger.LogInformation("Request charge of claim operation: {0}", response.RequestCharge);
                 _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
             }
+            catch (CosmosException ce) when (ce.Message.Contains(CosmosDbExceptions.ClaimUnsuccessfulAlreadyClaimed))
+            {
+                throw new InvalidOperationException(CosmosDbExceptions.ClaimUnsuccessfulAlreadyClaimed);
+            }
+            catch (CosmosException ce) when (ce.Message.Contains(CosmosDbExceptions.UnclaimUnsuccessfulAlreadyClaimed))
+            {
+                throw new InvalidOperationException(CosmosDbExceptions.UnclaimUnsuccessfulAlreadyClaimed);
+            }
             catch (Exception e)
             {
                 _logger.LogError(e, "Exception while claiming wishlist item.");
-                throw;
+
+                throw new WishlistDbException("An unknown error occurred.");
             }
         }
     }
