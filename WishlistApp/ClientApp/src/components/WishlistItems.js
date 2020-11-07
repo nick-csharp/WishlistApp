@@ -17,7 +17,7 @@ export class WishlistItems extends Component {
     this.getButtons = this.getButtons.bind(this);
   }
 
-  claimOrUnclaimItem = (e, item, isClaim) => {
+  claimOrUnclaimItem(e, item, isClaim) {
     e.preventDefault();
 
     if (this.state.isMe) return;
@@ -66,13 +66,14 @@ export class WishlistItems extends Component {
         console.error("There has been a problem with your fetch operation:", error);
       });
   };
-  
-  editItem = (e, item) => {
+
+  // TODO
+  editItem(e, item) {
     e.preventDefault();
-    alert("Edit");
+    alert("This function is not yet supported!");
   };
   
-  deleteItem = (e, item) => {
+  deleteItem(e, item) {
     e.preventDefault();
 
     var shouldDelete = window.confirm("Are you sure you want to delete this? Someone might have got it for you already!");
@@ -96,7 +97,7 @@ export class WishlistItems extends Component {
     }
   };
 
-  getButtons = (item) => {
+  getButtons(item) {
     if (this.state.isMe) {
       return (
         <React.Fragment>
