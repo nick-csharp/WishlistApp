@@ -17,15 +17,16 @@ export class Whanau extends Component {
     return (
       <div className="container mt-4" >
         <div className="row justify-content-center">
-          <div className="col-md-8">
-            <h1 className="font-weight-light text-center">Candy-Koedijk Whānau</h1>
+          {/*<div className="col-md-8">*/}
+          <div className="card">
+            <div className="card-header">
+              <h1 className="font-weight-light text-center">Candy-Koedijk Whānau</h1>
+            </div>
 
-            <div className="row justify-content-center">
-              <div className="col-md-6">
-                {this.state.loading
-                  ? <Loading />
-                  : <WhanauList whanau={this.state.whanau} />}
-              </div>
+            <div className="card-body" style={{padding: "0px"}}>
+              {this.state.loading
+                ? <Loading />
+                : <WhanauList whanau={this.state.whanau} />}
             </div>
           </div>
         </div>

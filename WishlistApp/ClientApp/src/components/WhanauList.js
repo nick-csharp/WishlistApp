@@ -27,7 +27,7 @@ export class WhanauList extends Component {
     });
 
     return (
-      <ul className="list-group ">
+      <ul className="list-group list-group-flush">
         {myWhanau}
       </ul>
     );
