@@ -1,5 +1,4 @@
 ﻿import React, { Component } from 'react';
-import { FaUndo } from "react-icons/fa"
 import Emoji from './Emoji';
 
 export class WishlistItems extends Component {
@@ -107,7 +106,7 @@ export class WishlistItems extends Component {
             title="Edit item"
             onClick={(e) => this.editItem(e, item)}
           >
-            <Emoji symbol="✏️" label="present" />
+            <Emoji symbol="✏️" label="pencil" />
           </button>
 
           <button
@@ -173,7 +172,7 @@ export class WishlistItems extends Component {
     }
 
     const getClaimStyle = (item) => {
-      if (item.isClaimedByMe) {
+      if (!this.state.isMe && item.isClaimedByMe) {
         return "claimed-by-me";
       }
       else if (!this.state.isMe && !item.isClaimable) {
