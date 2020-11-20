@@ -6,7 +6,11 @@ export class Whanau extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { whanau: [], loading: true };
+    this.state = {
+      whanauName: "",
+      whanauData: [],
+      loading: true
+    };
   }
 
   componentDidMount() {
@@ -17,16 +21,21 @@ export class Whanau extends Component {
     return (
       <div className="container mt-4" >
         <div className="row justify-content-center">
-          {/*<div className="col-md-8">*/}
-          <div className="card">
-            <div className="card-header">
-              <h1 className="font-weight-light text-center">Candy-Koedijk Whānau</h1>
-            </div>
+          <div className="col-md-6">
+            <div className="card">
 
-            <div className="card-body" style={{padding: "0px"}}>
               {this.state.loading
                 ? <Loading />
-                : <WhanauList whanau={this.state.whanau} />}
+                : <React.Fragment> 
+                    <div className="card-header">
+                      <h1 className="font-weight-light text-center">Candy-Koedijk Whānau</h1>
+                    </div>
+
+                    <div className="card-body" style={{padding: "0px"}}>
+                      <WhanauList whanau={this.state.whanauData} />
+                    </div>
+                  </React.Fragment>
+                }
             </div>
           </div>
         </div>
@@ -35,7 +44,10 @@ export class Whanau extends Component {
   }
 
   async populateWhanauData() {
-    const response = await fetch('api/whanau/7c51567e-588b-4329-bfb9-361105853517');
+    const defaultWhanauResponse = await fetch("api/whanau");
+    const defaultWhanau = await defaultWhanauResponse.json();
+
+    const response = await fetch('api/whanau/' + defaultWhanau.defaultWhanauId);
     const data = await response.json();
 
     data.sort(function (a, b) {
@@ -44,6 +56,10 @@ export class Whanau extends Component {
       return 0;
     });
 
-    this.setState({ whanau: data, loading: false });
+    this.setState({
+      whanauName: defaultWhanau.defaultWhanauName,
+      whanauData: data,
+      loading: false
+    });
   }
 }
