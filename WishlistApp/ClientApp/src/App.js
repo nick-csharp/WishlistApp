@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Home } from './components/Home';
 import { Whanau } from './components/Whanau';
 import { Wishlist } from './components/Wishlist';
 import { navigate, Router } from "@reach/router";
@@ -14,9 +13,7 @@ export default class App extends Component {
     return (
       <Layout>
         <Router>
-
-          <Home path='/' />
-          <Whanau path='/whanau' />
+          <Whanau path='/' />
           <AuthTest path='/authtest' />
           <Wishlist path='/person/:id/wishlist' />
         </Router>

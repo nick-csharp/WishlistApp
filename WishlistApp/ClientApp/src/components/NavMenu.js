@@ -33,15 +33,15 @@ export class NavMenu extends Component {
           </div>
           <div className="navbar-nav ml-auto">
             {!user && (
-              <Link className="nav-item nav-link" to="/whanau">
+              <Link className="nav-item nav-link" to="/">
                 Whānau
               </Link>
             )}
-            {!user && (
+            {/*!user && (
               <Link className="nav-item nav-link" to="/authtest">
                 Auth test
               </Link>
-            )}
+            )*/}
             {user && (
               <Link
                 className="nav-item nav-link"
