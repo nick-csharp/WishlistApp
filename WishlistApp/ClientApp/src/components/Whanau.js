@@ -28,7 +28,7 @@ export class Whanau extends Component {
                 ? <Loading />
                 : <React.Fragment> 
                     <div className="card-header">
-                      <h1 className="font-weight-light text-center">Candy-Koedijk Whānau</h1>
+                    <h1 className="font-weight-light text-center">{this.state.whanauName} Whānau</h1>
                     </div>
 
                     <div className="card-body" style={{padding: "0px"}}>
