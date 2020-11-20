@@ -6,6 +6,7 @@ import { navigate, Router } from "@reach/router";
 
 import './custom.css'
 import { Layout } from './components/Layout';
+import { AuthTest } from './components/AuthTest';
 
 export default class App extends Component {
 
@@ -16,6 +17,7 @@ export default class App extends Component {
 
           <Home path='/' />
           <Whanau path='/whanau' />
+          <AuthTest path='/authtest' />
           <Wishlist path='/person/:id/wishlist' />
         </Router>
       </Layout>

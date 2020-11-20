@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@azure/msal-browser": "^2.6.0",
     "@reach/router": "^1.3.4",
     "bootstrap": "^4.1.3",
     "jquery": "^3.5.1",

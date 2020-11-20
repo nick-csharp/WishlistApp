@@ -38,8 +38,8 @@ export class NavMenu extends Component {
               </Link>
             )}
             {!user && (
-              <Link className="nav-item nav-link" to="/login">
-                Log in
+              <Link className="nav-item nav-link" to="/authtest">
+                Auth test
               </Link>
             )}
             {user && (
