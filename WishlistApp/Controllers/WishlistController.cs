@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -16,10 +17,17 @@ namespace WishlistApp.Controllers
         private readonly ILogger<WishlistController> _logger;
         private readonly IWishlistService _wishlistService;
 
-        private const string _requestingId = "5fe116ac-19e9-401b-8f3a-6674996865b5";
+        private readonly string _defaultRequestingId;
 
-        public WishlistController(ILogger<WishlistController> logger, IWishlistService wishlistService)
+        public WishlistController(IConfiguration configuration, ILogger<WishlistController> logger, IWishlistService wishlistService)
         {
+            _defaultRequestingId = configuration.GetValue<string>("DefaultRequestingId");
+            if (string.IsNullOrEmpty(_defaultRequestingId))
+            {
+                throw new Exception("Default user not configured.");
+            }
+
+
             _logger = logger;
             _wishlistService = wishlistService;
         }
@@ -27,7 +35,7 @@ namespace WishlistApp.Controllers
         [HttpGet]
         public async Task<ActionResult<List<WishlistItemDto>>> GetWishlist(string personId)
         {
-            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, _requestingId);
+            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, _defaultRequestingId);
 
             return result.ToList();
         }
@@ -63,7 +71,7 @@ namespace WishlistApp.Controllers
         public async Task<IActionResult> ClaimWishlistItem(string personId, string wishlistItemId)
         {
             // validate person is manipulating someone else's wishlist
-            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _requestingId, true);
+            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _defaultRequestingId, true);
 
             return Ok();
         }
@@ -72,7 +80,7 @@ namespace WishlistApp.Controllers
         public async Task<IActionResult> UnclaimWishlistItem(string personId, string wishlistItemId)
         {
             // validate person is manipulating someone else's wishlist
-            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _requestingId, false);
+            await _wishlistService.ClaimWishlistItemAsync(personId, wishlistItemId, _defaultRequestingId, false);
 
             return Ok();
         }
