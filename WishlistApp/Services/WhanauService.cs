@@ -12,6 +12,7 @@ namespace WishlistApp.Services
 {
     public interface IWhanauService 
     {
+        DefaultWhanauDto GetDefaultWhanau();
         Task<IEnumerable<Person>> GetWhanauAsync(string whanauId);
     }
     
@@ -23,6 +24,9 @@ namespace WishlistApp.Services
         private readonly string _databaseId;
         private readonly string _containerId;
 
+        private readonly string _defaultWhanauId;
+        private readonly string _defaultWhanauName;
+
         public WhanauService(IConfiguration configuration, ILogger<WhanauService> logger, CosmosClient cosmosClient)
         {
             _logger = logger;
@@ -31,6 +35,18 @@ namespace WishlistApp.Services
             _containerId = configuration.GetValue<string>("UsersContainerId");
 
             _container = cosmosClient.GetContainer(_databaseId, _containerId);
+
+            _defaultWhanauId = configuration.GetValue<string>("DefaultWhanauId");
+            _defaultWhanauName = configuration.GetValue<string>("DefaultWhanauName");
+        }
+
+        public DefaultWhanauDto GetDefaultWhanau()
+        {
+            return new DefaultWhanauDto
+            {
+                DefaultWhanauId = _defaultWhanauId,
+                DefaultWhanauName = _defaultWhanauName
+            };
         }
 
         public async Task<IEnumerable<Person>> GetWhanauAsync(string whanauId)

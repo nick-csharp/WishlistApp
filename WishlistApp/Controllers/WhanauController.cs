@@ -22,6 +22,13 @@ namespace WishlistApp.Controllers
             _whanauService = whanauService;
         }
 
+        [HttpGet("")]
+        public ActionResult<DefaultWhanauDto> GetDefaultWhanau()
+        {
+            var result = _whanauService.GetDefaultWhanau();
+            return result;
+        }
+
         [HttpGet("{whanauId}")]
         public async Task<ActionResult<List<Person>>> GetWhanau(string whanauId)
         {
