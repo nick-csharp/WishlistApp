@@ -1,8 +1,9 @@
 ﻿import React, { Component } from 'react';
 import { WhanauList } from './WhanauList';
 import { Loading } from './Loading';
+import { AuthContext } from './AuthContext';
 
-export class Whanau extends Component {
+class Whanau extends Component {
 
   constructor(props) {
     super(props);
@@ -65,3 +66,6 @@ export class Whanau extends Component {
     });
   }
 }
+Whanau.contextType = AuthContext;
+
+export default Whanau;

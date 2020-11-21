@@ -1,5 +1,5 @@
 ﻿const apiConfig = {
-  b2cScopes: ["https://wishlistsappb2c.onmicrosoft.com/helloapi/demo.read"],
+  b2cScopes: ["https://wishlistsappb2c.onmicrosoft.com/api/execute"],
   webApi: "https://wishlists.azurewebsites.net/api",
 };
 
@@ -41,7 +41,7 @@ const msalConfig = {
  * https://docs.microsoft.com/azure/active-directory/develop/v2-permissions-and-consent#openid-connect-scopes
  */
 const loginRequest = {
-  scopes: ["openid"],
+  scopes: [...apiConfig.b2cScopes],
 };
 
 /**

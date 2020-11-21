@@ -9,10 +9,15 @@ namespace WishlistApp.Controllers
     [Authorize]
     public class AuthTestController : ControllerBase
     {
+    
+
         [HttpGet("{id}")]
         public async Task<ActionResult<string>> GetThing(string id)
         {
-            return "Auth worked! " + id;
+
+            var objectId = User.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
+            
+            return "Auth worked! objectId:" + objectId;
         }
     }
 }

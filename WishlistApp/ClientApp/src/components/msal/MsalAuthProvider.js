@@ -1,4 +1,5 @@
 ﻿import {
+  b2cPolicies,
   msalConfig,
   loginRequest,
   tokenRequest,
@@ -15,88 +16,55 @@ export function withAuth(HocComponent) {
       super(props);
 
       this.state = {
-        accountId: "",
+        account: {},
         error: null,
         isAuthenticated: false,
-        user: {},
       };
 
-      this.handleResponse = this.handleResponse.bind(this);
+      this.login = this.login.bind(this);
+      this.logout = this.logout.bind(this);
       this.getAccessToken = this.getAccessToken.bind(this);
-      this.signIn = this.signIn.bind(this);
-      this.signOut = this.signOut.bind(this);
+      this.normalizeError = this.normalizeError.bind(this);
+      this.handleResponse = this.handleResponse.bind(this);
+      this.handleError = this.handleError.bind(this);
 
       this.msalAuth = new PublicClientApplication(msalConfig);
-    }
 
-    async componentDidMount() {
       this.msalAuth
         .handleRedirectPromise()
         .then(this.handleResponse)
-        .catch((error) => {
-          console.error(error);
-          // Check for forgot password error
-          //// Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
-          //if (error.errorMessage.indexOf("AADB2C90118") > -1) {
-          //  try {
-          //    msalAuth.loginRedirect(b2cPolicies.authorities.forgotPassword);
-          //  } catch (err) {
-          //    console.log(err);
-          //  }
-          //}
-        });
+        .catch(this.handleError);
     }
 
     handleResponse(resp) {
-      /**
-       * See here for more information on account retrieval:
-       * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
-       */
-      debugger;
       if (resp !== null) {
-        this.setState({ accountId: resp.account.homeAccountId });
+        this.setState({ isAuthenticated: true, account: resp.account });
       } else {
-        // need to call getAccount here?
-        const currentAccounts = this.msalAuth.getAllAccounts();
-        if (!currentAccounts || currentAccounts.length < 1) {
-          this.signIn();
-        } else if (currentAccounts.length > 1) {
-          // Add choose account code here
-          console.error(
-            "Multiple accounts detected. Unable to handle this scenario"
-          );
-        } else if (currentAccounts.length === 1) {
-          this.setState({ accountId: currentAccounts[0].homeAccountId });
+        const accounts = this.msalAuth.getAllAccounts();
+        if (accounts && accounts.length > 0) {
+          this.setState({ isAuthenticated: true, account: accounts[0] });
+        } else {
+          this.setState({ isAuthenticated: false, account: {} });
         }
       }
     }
 
-    async getAccessToken() {
-      debugger;
-      tokenRequest.account = this.msalAuth.getAccountByHomeId(this.state.accountId);
-      return await this.msalAuth
-        .acquireTokenSilent(tokenRequest)
-        .catch(async (error) => {
-          console.log("silent token acquisition fails.");
-          if (error instanceof InteractionRequiredAuthError) {
-            // fallback to interaction when silent call fails
-            console.log("acquiring token using redirect");
-            this.msalAuth.acquireTokenRedirect(tokenRequest);
-          } else {
-            console.error(error);
-          }
-        });
-    }
-
-    signIn() {
-      return this.msalAuth.loginRedirect(loginRequest);
-    }
-
-    signOut() {
-      const logoutRequest = {
-        account: this.msalAuth.getAccountByHomeId(this.state.accountId),
-      };
-      this.msalAuth.logout(logoutRequest);
+    async handleError(error) {
+      // Check for forgot password error
+      // Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
+      if (
+        error &&
+        error.errorMessage &&
+        error.errorMessage.indexOf("AADB2C90118") > -1
+      ) {
+        try {
+          return await this.msalAuth.loginRedirect(
+            b2cPolicies.authorities.forgotPassword
+          );
+        } catch (err) {
+          console.log(err);
+        }
+      }
     }
 
     render() {
@@ -104,14 +72,59 @@ export function withAuth(HocComponent) {
         <HocComponent
           error={this.state.error}
           isAuthenticated={this.state.isAuthenticated}
-          user={this.state.user}
-          onSignIn={() => this.signIn()}
-          onSignOut={() => this.signOut()}
+          login={() => this.login()}
+          logout={() => this.logout()}
           getAccessToken={() => this.getAccessToken()}
           {...this.props}
           {...this.state}
         />
       );
+    }
+
+    async login() {
+      return await this.msalAuth.loginRedirect(loginRequest);
+    }
+
+    logout() {
+      const logoutRequest = {
+        account: this.msalAuth.getAccountByHomeId(this.state.account.accountId),
+      };
+      this.msalAuth.logout(logoutRequest);
+    }
+
+    async getAccessToken() {
+      let request = tokenRequest;
+      request.account = this.state.account;
+      debugger;
+      return await this.msalAuth
+        .acquireTokenSilent(request)
+        .catch(async (error) => {
+          console.log("silent token acquisition fails.");
+          if (error instanceof InteractionRequiredAuthError) {
+            // fallback to interaction when silent call fails
+            console.log("acquiring token using redirect");
+            this.msalAuth.acquireTokenRedirect(request);
+          } else {
+            console.error(error);
+          }
+        });
+    }
+
+    normalizeError(error) {
+      var normalizedError = {};
+      if (typeof error === "string") {
+        var errParts = error.split("|");
+        normalizedError =
+          errParts.length > 1
+            ? { message: errParts[1], debug: errParts[0] }
+            : { message: error };
+      } else {
+        normalizedError = {
+          message: error.message,
+          debug: JSON.stringify(error),
+        };
+      }
+      return normalizedError;
     }
   };
 }
