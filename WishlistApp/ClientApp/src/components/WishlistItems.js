@@ -6,7 +6,7 @@ export class WishlistItems extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isMe: this.props.userId == this.props.personId,
+      isMe: this.props.userId === this.props.personId,
       wishlistData: props.wishlistData
     };
 
@@ -53,7 +53,7 @@ export class WishlistItems extends Component {
           throw new Error("Network response was not ok.");
         }
 
-        var index = this.state.wishlistData.findIndex((obj => obj.id == item.id));
+        var index = this.state.wishlistData.findIndex((obj => obj.id === item.id));
 
         const newWishlistData = [...this.state.wishlistData];
         newWishlistData[index].isClaimable = newIsClaimable;
@@ -87,7 +87,7 @@ export class WishlistItems extends Component {
             throw new Error("Network response was not ok.");
           }
 
-          const newWishlistData = this.state.wishlistData.filter(x => x.id != item.id);
+          const newWishlistData = this.state.wishlistData.filter(x => x.id !== item.id);
           this.setState({ wishlistData: newWishlistData });
         })
         .catch(error => {

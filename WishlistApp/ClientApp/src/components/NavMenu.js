@@ -1,13 +1,8 @@
 ﻿import React, { Component } from 'react';
-import { FaUsers } from "react-icons/fa";
 import { Link } from "@reach/router";
 
 export class NavMenu extends Component {
   static displayName = NavMenu.name;
-
-  constructor (props) {
-    super(props);
-  }
 
   getEmoji() {
     const useOtherEmoji = Math.random() > 0.8;

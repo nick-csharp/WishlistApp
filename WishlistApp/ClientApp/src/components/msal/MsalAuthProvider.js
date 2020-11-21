@@ -1,5 +1,4 @@
 ﻿import {
-  b2cPolicies,
   msalConfig,
   loginRequest,
   tokenRequest,
@@ -30,7 +29,7 @@ export function withAuth(HocComponent) {
       this.msalAuth = new PublicClientApplication(msalConfig);
     }
 
-    async componentWillMount() {
+    async componentDidMount() {
       this.msalAuth
         .handleRedirectPromise()
         .then(this.handleResponse)
