@@ -1,37 +1,32 @@
 ﻿const apiConfig = {
-  b2cScopes: ["https://authtutorial.onmicrosoft.com/helloapi/demo.read"],
-  webApi: "https://fabrikamb2chello.azurewebsites.net/hello",
+  b2cScopes: ["https://wishlistsappb2c.onmicrosoft.com/helloapi/demo.read"],
+  webApi: "https://wishlists.azurewebsites.net/api",
 };
 
 const b2cPolicies = {
   names: {
-    signUpSignIn: "B2C_1_signupsignin1",
-    forgotPassword: "B2C_1_reset1",
-    editProfile: "B2C_1_edit_profile1",
+    signIn: "B2C_1_signin",
+    forgotPassword: "B2C_1_reset",
   },
   authorities: {
-    signUpSignIn: {
+    signIn: {
       authority:
-        "https://authtutorial.b2clogin.com/authtutorial.onmicrosoft.com/B2C_1_signupsignin1",
+        "https://wishlistsappb2c.b2clogin.com/wishlistsappb2c.onmicrosoft.com/B2C_1_signin",
     },
     forgotPassword: {
       authority:
-        "https://authtutorial.b2clogin.com/authtutorial.onmicrosoft.com/B2C_1_reset1",
-    },
-    editProfile: {
-      authority:
-        "https://authtutorial.b2clogin.com/authtutorial.onmicrosoft.com/B2C_1_edit_profile1",
-    },
+        "https://wishlistsappb2c.b2clogin.com/wishlistsappb2c.onmicrosoft.com/B2C_1_reset",
+    }
   },
-  authorityDomain: "authtutorial.b2clogin.com",
+  authorityDomain: "wishlistsappb2c.b2clogin.com",
 };
 
 const msalConfig = {
   auth: {
-    clientId: "9064a726-416e-4535-89ff-f2713b43c6e8", // This is the ONLY mandatory field; everything else is optional.
-    authority: b2cPolicies.authorities.signUpSignIn.authority, // Choose sign-up/sign-in user-flow as your default.
+    clientId: "624f988c-fd38-461a-93f9-9be88085d9c8", // This is the ONLY mandatory field; everything else is optional.
+    authority: b2cPolicies.authorities.signIn.authority, // Choose sign-up/sign-in user-flow as your default.
     knownAuthorities: [b2cPolicies.authorityDomain], // You must identify your tenant's domain as a known authority.
-    redirectUri: "https://localhost:44314/authtest", // You must register this URI on Azure Portal/App Registration. Defaults to "window.location.href".
+    redirectUri: "https://localhost:44314/", // You must register this URI on Azure Portal/App Registration. Defaults to "window.location.href".
   },
   cache: {
     cacheLocation: "sessionStorage", // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.

@@ -1,13 +1,23 @@
 import React, { Component } from 'react';
 import { Whanau } from './components/Whanau';
 import { Wishlist } from './components/Wishlist';
-import { navigate, Router } from "@reach/router";
+import { Router } from "@reach/router";
+import { withAuth } from "./components/msal/MsalAuthProvider";
 
 import './custom.css'
 import { Layout } from './components/Layout';
 import { AuthTest } from './components/AuthTest';
 
-export default class App extends Component {
+class RootApp extends Component {
+
+  constructor(props) {
+    super(props);
+    this.state = { data: "unloaded", isLoading: true };
+  }
+
+  componentDidMount() {
+    debugger;
+  }
 
   render () {
     return (
@@ -21,3 +31,5 @@ export default class App extends Component {
     );
   }
 }
+
+export const App = withAuth(RootApp);
