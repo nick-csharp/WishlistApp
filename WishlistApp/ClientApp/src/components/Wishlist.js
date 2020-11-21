@@ -10,8 +10,11 @@ export class Wishlist extends Component {
     this.state = {
       wishlistData: [],
       newItemDescription: "",
-      isLoading: true
+      isLoading: true,
+      isMe: this.props.location.state.userId === this.props.personId
     }
+
+    debugger;
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -38,7 +41,7 @@ export class Wishlist extends Component {
       return;
     }
 
-    var personId = this.props.id;
+    var personId = this.props.personId;
 
     var data = {
       "userId": personId,
@@ -74,37 +77,39 @@ export class Wishlist extends Component {
                 <h1 className="font-weight-light text-center">{name}'s Wishlist</h1>
               </div>
 
-              <div className="card-body">
-                <form className="formgroup" autoComplete="off" onSubmit={this.handleSubmit}>
-                  <div className="input-group">
-                    <input
-                      type="text"
-                      className="form-control"
-                      name="newItemDescription"
-                      placeholder="Add a wishlist item"
-                      aria-describedby="buttonAdd"
-                      value={this.state.newItemDescription}
-                      onChange={this.handleChange}
-                    />
-                    <div className="input-group-append">
-                      <button
-                        type="submit"
-                        className="btn btn-sm btn-outline-secondary emoji-button"
-                        title="Add"
-                        id="buttonAdd"
-                      >
-                        <Emoji symbol="➕" label="plus" />
-                      </button>
-                    </div>
+              {this.state.isMe
+                ? <div className="card-body">
+                    <form className="formgroup" autoComplete="off" onSubmit={this.handleSubmit}>
+                      <div className="input-group">
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="newItemDescription"
+                          placeholder="Add a wishlist item"
+                          aria-describedby="buttonAdd"
+                          value={this.state.newItemDescription}
+                          onChange={this.handleChange}
+                        />
+                        <div className="input-group-append">
+                          <button
+                            type="submit"
+                            className="btn btn-sm btn-outline-secondary emoji-button"
+                            title="Add"
+                            id="buttonAdd"
+                          >
+                            <Emoji symbol="➕" label="plus" />
+                          </button>
+                        </div>
+                      </div>
+                    </form>
                   </div>
-                </form>
-              </div>
-
+                : null}
+              
               <div className="card-body">
 
                 {this.state.isLoading
                   ? <Loading />
-                  : <WishlistItems wishlistData={this.state.wishlistData} personId={this.props.id} />}
+                  : <WishlistItems wishlistData={this.state.wishlistData} personId={this.props.personId} userId={this.props.location.state.userId} />}
               </div>
             </div>
           </div>
@@ -114,7 +119,7 @@ export class Wishlist extends Component {
   }
 
   async populateWishlistData() {
-    const response = await fetch(`api/person/${this.props.id}/wishlist`);
+    const response = await fetch(`api/person/${this.props.personId}/wishlist?requestingUserId=${this.props.location.state.userId}`);
     const data = await response.json();
     this.setState({ wishlistData: data, isLoading: false });
   }

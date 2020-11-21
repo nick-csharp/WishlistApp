@@ -6,7 +6,7 @@ export class WishlistItems extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      isMe: false,
+      isMe: this.props.userId == this.props.personId,
       wishlistData: props.wishlistData
     };
 
@@ -27,12 +27,12 @@ export class WishlistItems extends Component {
 
     if (isClaim && item.isClaimable) {
       // do claim
-      requestUri += "claim";
+      requestUri += `claim?requestingUserId=${this.props.userId}`;
       newIsClaimedByMe = true;
     }
     else if (!isClaim && item.isClaimedByMe && window.confirm(confirmUnclaimText)) {
       // do unclaim
-      requestUri += "unclaim";
+      requestUri += `unclaim?requestingUserId=${this.props.userId}`;
       newIsClaimable = true;
     }
     else {

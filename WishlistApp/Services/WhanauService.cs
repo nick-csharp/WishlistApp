@@ -26,6 +26,7 @@ namespace WishlistApp.Services
 
         private readonly string _defaultWhanauId;
         private readonly string _defaultWhanauName;
+        private readonly string _defaultPersonId;
 
         public WhanauService(IConfiguration configuration, ILogger<WhanauService> logger, CosmosClient cosmosClient)
         {
@@ -38,6 +39,7 @@ namespace WishlistApp.Services
 
             _defaultWhanauId = configuration.GetValue<string>("DefaultWhanauId");
             _defaultWhanauName = configuration.GetValue<string>("DefaultWhanauName");
+            _defaultPersonId = configuration.GetValue<string>("DefaultUserId");
         }
 
         public DefaultWhanauDto GetDefaultWhanau()
@@ -45,7 +47,8 @@ namespace WishlistApp.Services
             return new DefaultWhanauDto
             {
                 DefaultWhanauId = _defaultWhanauId,
-                DefaultWhanauName = _defaultWhanauName
+                DefaultWhanauName = _defaultWhanauName,
+                DefaultUserId = _defaultPersonId
             };
         }
 

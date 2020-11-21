@@ -9,5 +9,6 @@ namespace WishlistApp.Models
     {
         public string DefaultWhanauId { get; set; }
         public string DefaultWhanauName { get; set; }
+        public string DefaultUserId { get; set; }
     }
 }

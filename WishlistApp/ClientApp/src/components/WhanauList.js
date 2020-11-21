@@ -17,7 +17,7 @@ export class WhanauList extends Component {
             title={person.name}
             
             onClick={() =>
-              navigate(`/person/${person.id}/wishlist`, { state: { person: person } })
+              navigate(`/person/${person.id}/wishlist`, { state: { person: person, userId: this.props.userId } })
             }
           >
             {person.name}

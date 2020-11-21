@@ -15,7 +15,7 @@ export default class App extends Component {
         <Router>
           <Whanau path='/' />
           <AuthTest path='/authtest' />
-          <Wishlist path='/person/:id/wishlist' />
+          <Wishlist path='/person/:personId/wishlist' />
         </Router>
       </Layout>
     );

@@ -8,6 +8,7 @@ export class Whanau extends Component {
     super(props);
     this.state = {
       whanauName: "",
+      userId: "",
       whanauData: [],
       loading: true
     };
@@ -32,7 +33,7 @@ export class Whanau extends Component {
                     </div>
 
                     <div className="card-body" style={{padding: "0px"}}>
-                      <WhanauList whanau={this.state.whanauData} />
+                    <WhanauList whanau={this.state.whanauData} userId={this.state.userId} />
                     </div>
                   </React.Fragment>
                 }
@@ -58,6 +59,7 @@ export class Whanau extends Component {
 
     this.setState({
       whanauName: defaultWhanau.defaultWhanauName,
+      userId: defaultWhanau.defaultUserId,
       whanauData: data,
       loading: false
     });
