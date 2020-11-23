@@ -9,58 +9,37 @@ using System.Linq;
 using System.Threading.Tasks;
 using WishlistApp.Helpers;
 using WishlistApp.Models;
+using WishlistApp.Repositories;
 
-namespace WishlistApp
+namespace WishlistApp.Services
 {
     public interface IWishlistService
     {
-        Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string ownerUserId, string requestingUserId);
+        Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId);
         Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto);
-        Task EditWishlistItemAsync(string ownerUserId, WishlistItemDto wishlistItemDto);
-        Task DeleteWishlistItemAsync(string ownerUserId, string wishlistItemId);
-        Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId, bool isClaim);
+        Task UpdateWishlistItemDescriptionAsync(WishlistItemDto wishlistItemDto);
+        Task DeleteWishlistItemAsync(WishlistItemDto wishlistItemDto);
+        Task UpdateWishlistItemClaimAsync(WishlistItemDto wishlistItemDto, string currentUserId, bool isClaim);
     }
 
     public class WishlistService : IWishlistService
     {
         private readonly ILogger<WishlistService> _logger;
+        private readonly IWishlistRepository _wishlistRepository;
 
-        private readonly Container _container;
-        private readonly string _databaseId;
-        private readonly string _containerId;
-
-        public WishlistService(IConfiguration configuration, ILogger<WishlistService> logger, CosmosClient cosmosClient)
+        public WishlistService(ILogger<WishlistService> logger, IWishlistRepository wishlistRepository)
         {
             _logger = logger;
-
-            _databaseId = configuration.GetValue<string>("WishlistDbId");
-            _containerId = configuration.GetValue<string>("WishlistsContainerId");
-
-            _container = cosmosClient.GetContainer(_databaseId, _containerId);
+            _wishlistRepository = wishlistRepository;
         }
         
-        public async Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string ownerId, string requestingId)
+        public async Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId)
         {
             try
             {
-                var wishlistItems = new List<WishlistItem>();
+                var wishlistItems = await _wishlistRepository.GetAllWishlistItemsAsync(wishlistOwnerId);
 
-                var queryRequestOptions = new QueryRequestOptions() { PartitionKey = new PartitionKey(ownerId) };
-                using (var setIterator = _container.GetItemLinqQueryable<WishlistItem>(requestOptions: queryRequestOptions)
-                    .ToFeedIterator())
-                {
-                    while (setIterator.HasMoreResults)
-                    {
-                        var response = await setIterator.ReadNextAsync();
-
-                        _logger.LogInformation("Request charge of get operation: {0}", response.RequestCharge);
-                        _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
-
-                        wishlistItems.AddRange(response);
-                    }
-                }
-
-                var requesterIsOwner = ownerId == requestingId;
+                var requesterIsOwner = wishlistOwnerId == currentUserId;
 
                 var dtos = wishlistItems.Select(w =>
                     new WishlistItemDto
@@ -69,7 +48,7 @@ namespace WishlistApp
                         UserId = w.UserId,
                         Description = w.Description,
                         IsClaimable = string.IsNullOrEmpty(w.ClaimedByUserId) && !requesterIsOwner,
-                        IsClaimedByMe = w.ClaimedByUserId == requestingId && !requesterIsOwner
+                        IsClaimedByMe = w.ClaimedByUserId == currentUserId && !requesterIsOwner
                     });
 
                 return dtos;
@@ -86,17 +65,13 @@ namespace WishlistApp
             try
             {
                 var wishlistItem = new WishlistItem(wishlistItemDto.UserId, wishlistItemDto.Description);
-
-                ItemResponse<WishlistItem> response = await _container.CreateItemAsync(wishlistItem, new PartitionKey(wishlistItem.UserId));
-
-                _logger.LogInformation("Request charge of create operation: {0}", response.RequestCharge);
-                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+                var createdWishlistItem = await _wishlistRepository.AddWishlistItemAsync(wishlistItem);
 
                 return new WishlistItemDto
                 {
-                    Id = response.Resource.Id,
-                    Description = response.Resource.Description,
-                    UserId = response.Resource.UserId,
+                    Id = createdWishlistItem.Id,
+                    Description = createdWishlistItem.Description,
+                    UserId = createdWishlistItem.UserId,
                     IsClaimable = false,
                     IsClaimedByMe = false
                 };
@@ -108,37 +83,26 @@ namespace WishlistApp
             }
         }
 
-        public async Task EditWishlistItemAsync(string ownerId, WishlistItemDto wishlistItemDto)
+        public async Task UpdateWishlistItemDescriptionAsync(WishlistItemDto wishlistItemDto)
         {
             try 
             {
-                StoredProcedureExecuteResponse<string> response = 
-                    await _container.Scripts.ExecuteStoredProcedureAsync<string>(
-                        "updateWishlistItem",
-                        new PartitionKey(ownerId),
-                        new dynamic[] { wishlistItemDto.Id, wishlistItemDto.Description });
-
-                _logger.LogInformation("Request charge of edit operation: {0}", response.RequestCharge);
-                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+                var wishlistItem = new WishlistItem(wishlistItemDto);
+                await _wishlistRepository.UpdateWishlistItemDescriptionAsync(wishlistItem);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception while editing wishlist item.");
+                _logger.LogError(e, "Exception while updating description on wishlist item.");
                 throw;
             }
         }
 
-        public async Task DeleteWishlistItemAsync(string ownerUserId, string wishlistItemId)
+        public async Task DeleteWishlistItemAsync(WishlistItemDto wishlistItemDto)
         {
             try
             {
-                ItemResponse<WishlistItem> response = await _container.DeleteItemAsync<WishlistItem>(
-                    partitionKey: new PartitionKey(ownerUserId),
-                    id: wishlistItemId
-                );
-
-                _logger.LogInformation("Request charge of delete operation: {0}", response.RequestCharge);
-                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+                var wishlistItem = new WishlistItem(wishlistItemDto);
+                await _wishlistRepository.DeleteWishlistItemAsync(wishlistItem);
             }
             catch (Exception e)
             {
@@ -147,30 +111,17 @@ namespace WishlistApp
             }
         }
 
-        public async Task ClaimWishlistItemAsync(string ownerUserId, string wishlistItemId, string claimerUserId, bool isClaim)
+        public async Task UpdateWishlistItemClaimAsync(WishlistItemDto wishlistItemDto, string currentUserId, bool isClaim)
         {
             try
             {
-                StoredProcedureExecuteResponse<string> response =
-                    await _container.Scripts.ExecuteStoredProcedureAsync<string>(
-                        "claimWishlistItem",
-                        new PartitionKey(ownerUserId),
-                        new dynamic[] { wishlistItemId, claimerUserId, isClaim });
+                var wishlistItem = new WishlistItem() { Id = wishlistItemDto.Id, UserId = wishlistItemDto.UserId };
 
-                _logger.LogInformation("Request charge of claim operation: {0}", response.RequestCharge);
-                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
-            }
-            catch (CosmosException ce) when (ce.Message.Contains(CosmosDbExceptions.ClaimUnsuccessfulAlreadyClaimed))
-            {
-                throw new InvalidOperationException(CosmosDbExceptions.ClaimUnsuccessfulAlreadyClaimed);
-            }
-            catch (CosmosException ce) when (ce.Message.Contains(CosmosDbExceptions.UnclaimUnsuccessfulAlreadyClaimed))
-            {
-                throw new InvalidOperationException(CosmosDbExceptions.UnclaimUnsuccessfulAlreadyClaimed);
+                await _wishlistRepository.UpdateWishlistItemClaimAsync(wishlistItem, currentUserId, isClaim);
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Exception while claiming wishlist item.");
+                _logger.LogError(e, "Exception while updating claim on wishlist item.");
 
                 throw new WishlistDbException("An unknown error occurred.");
             }
