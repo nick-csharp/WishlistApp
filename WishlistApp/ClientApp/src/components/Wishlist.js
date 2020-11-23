@@ -71,7 +71,7 @@ export class Wishlist extends Component {
     return (
       <div className="container mt-4" >
         <div className="row justify-content-center">
-          <div className="">
+          <div className="col-md-6">
             <div className="card">
               <div className="card-header">
                 <h1 className="font-weight-light text-center">{name}'s Wishlist</h1>
