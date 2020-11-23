@@ -28,6 +28,7 @@ namespace WishlistApp
                         .AddSingleton(s => GetCosmosClient(context))
                         .AddScoped<IWishlistService, WishlistService>()
                         .AddScoped<IWhanauService, WhanauService>()
+                        .AddScoped<IWishlistAuthorizationService, WishlistAuthorizationService>()
                         .AddScoped<IWishlistRepository, WishlistRepository>()
                         .AddScoped<IWhanauRepository, WhanauRepository>()
                 );
