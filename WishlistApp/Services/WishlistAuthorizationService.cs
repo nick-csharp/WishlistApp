@@ -48,7 +48,7 @@ namespace WishlistApp.Services
             switch (operation)
             {
                 case Operation.GetWhanau:
-                    isAuthorized = currentPerson.WhanauId == resourceId;
+                    isAuthorized = true;
                     break;
                 case Operation.GetWishlistItems:
                     isAuthorized = true; // todo: auth by whanau

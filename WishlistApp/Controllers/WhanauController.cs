@@ -28,18 +28,18 @@ namespace WishlistApp.Controllers
             _authorizationService = authorizationService;
         }
 
-        [HttpGet("{whanauId}")]
-        public async Task<ActionResult<List<Person>>> GetWhanau(string whanauId)
+        [HttpGet("")]
+        public async Task<ActionResult<Whanau>> GetWhanau()
         {
-            var authResult = await _authorizationService.AuthorizeAsync(User, whanauId, Operation.GetWhanau);
+            var authResult = await _authorizationService.AuthorizeAsync(User, null, Operation.GetWhanau);
             if (!authResult.IsAuthorised)
             {
                 return Forbid();
             }
 
-            var result = await _whanauService.GetWhanauAsync(whanauId);
+            var result = await _whanauService.GetWhanauAsync(authResult.Person.WhanauId);
 
-            return result.ToList();
+            return result;
         }
     }
 }

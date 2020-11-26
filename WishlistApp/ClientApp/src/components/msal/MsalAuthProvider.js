@@ -10,6 +10,8 @@ import {
 } from "@azure/msal-browser";
 import React, { Component } from "react";
 
+export const MsalAuthContext = React.createContext();
+
 export function withAuth(HocComponent) {
   return class extends Component {
     constructor(props) {
@@ -24,16 +26,22 @@ export function withAuth(HocComponent) {
       this.login = this.login.bind(this);
       this.logout = this.logout.bind(this);
       this.getAccessToken = this.getAccessToken.bind(this);
-      this.normalizeError = this.normalizeError.bind(this);
+      //this.normalizeError = this.normalizeError.bind(this);
       this.handleResponse = this.handleResponse.bind(this);
       this.handleError = this.handleError.bind(this);
+      this.appendAccessToken = this.appendAccessToken.bind(this);
 
       this.msalAuth = new PublicClientApplication(msalConfig);
-
       this.msalAuth
         .handleRedirectPromise()
         .then(this.handleResponse)
         .catch(this.handleError);
+    }
+
+    componentWillReceiveProps() {
+      // handle login of already authed people
+      // edit: doens't work :(
+      this.handleResponse();
     }
 
     handleResponse(resp) {
@@ -67,36 +75,31 @@ export function withAuth(HocComponent) {
       }
     }
 
-    render() {
-      return (
-        <HocComponent
-          error={this.state.error}
-          isAuthenticated={this.state.isAuthenticated}
-          login={() => this.login()}
-          logout={() => this.logout()}
-          getAccessToken={() => this.getAccessToken()}
-          {...this.props}
-          {...this.state}
-        />
-      );
-    }
-
     async login() {
       return await this.msalAuth.loginRedirect(loginRequest);
     }
 
-    logout() {
+    async logout() {
       const logoutRequest = {
         account: this.msalAuth.getAccountByHomeId(this.state.account.accountId),
       };
-      this.msalAuth.logout(logoutRequest);
+      return await this.msalAuth.logout(logoutRequest);
+    }
+
+    async appendAccessToken(options) {
+      const token = await this.getAccessToken();
+      const bearer = `Bearer ${token}`;
+      if (!options.headers) {
+        options.headers = new Headers();
+      }
+      debugger;
+      options.headers.append("Authorization", bearer);
     }
 
     async getAccessToken() {
       let request = tokenRequest;
       request.account = this.state.account;
-      debugger;
-      return await this.msalAuth
+      let token = await this.msalAuth
         .acquireTokenSilent(request)
         .catch(async (error) => {
           console.log("silent token acquisition fails.");
@@ -108,23 +111,42 @@ export function withAuth(HocComponent) {
             console.error(error);
           }
         });
+
+      return token.accessToken;
     }
 
-    normalizeError(error) {
-      var normalizedError = {};
-      if (typeof error === "string") {
-        var errParts = error.split("|");
-        normalizedError =
-          errParts.length > 1
-            ? { message: errParts[1], debug: errParts[0] }
-            : { message: error };
-      } else {
-        normalizedError = {
-          message: error.message,
-          debug: JSON.stringify(error),
-        };
-      }
-      return normalizedError;
+    render() {
+      return (
+        <MsalAuthContext.Provider
+          value={{
+            isAuthenticated: this.state.isAuthenticated,
+            account: this.state.account,
+            loading: this.state.loading,
+            login: this.login,
+            appendAccessToken: this.appendAccessToken,
+            logout: this.logout,
+          }}
+        >
+          <HocComponent />
+        </MsalAuthContext.Provider>
+      );
     }
+
+    // normalizeError(error) {
+    //   var normalizedError = {};
+    //   if (typeof error === "string") {
+    //     var errParts = error.split("|");
+    //     normalizedError =
+    //       errParts.length > 1
+    //         ? { message: errParts[1], debug: errParts[0] }
+    //         : { message: error };
+    //   } else {
+    //     normalizedError = {
+    //       message: error.message,
+    //       debug: JSON.stringify(error),
+    //     };
+    //   }
+    //   return normalizedError;
+    // }
   };
 }

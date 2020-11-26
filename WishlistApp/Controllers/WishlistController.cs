@@ -29,7 +29,7 @@ namespace WishlistApp.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<WishlistItemDto>>> GetWishlist(string personId)
+        public async Task<ActionResult<WishlistViewDto>> GetWishlist(string personId)
         {
             var authResult = await _authorizationService.AuthorizeAsync(User, personId, Operation.GetWishlistItems);
 
@@ -40,7 +40,7 @@ namespace WishlistApp.Controllers
 
             var result = await _wishlistService.GetAllWishlistItemsAsync(personId, authResult.Person.Id);
 
-            return result.ToList();
+            return result;
         }
 
         [HttpPost]

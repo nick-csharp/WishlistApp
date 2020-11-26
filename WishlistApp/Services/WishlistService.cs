@@ -15,7 +15,7 @@ namespace WishlistApp.Services
 {
     public interface IWishlistService
     {
-        Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId);
+        Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId);
         Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto);
         Task UpdateWishlistItemDescriptionAsync(WishlistItemDto wishlistItemDto);
         Task DeleteWishlistItemAsync(WishlistItemDto wishlistItemDto);
@@ -33,7 +33,7 @@ namespace WishlistApp.Services
             _wishlistRepository = wishlistRepository;
         }
         
-        public async Task<IEnumerable<WishlistItemDto>> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId)
+        public async Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId)
         {
             try
             {
@@ -51,7 +51,7 @@ namespace WishlistApp.Services
                         IsClaimedByMe = w.ClaimedByUserId == currentUserId && !requesterIsOwner
                     });
 
-                return dtos;
+                return new WishlistViewDto(requesterIsOwner, dtos);
             }
             catch (Exception e)
             {

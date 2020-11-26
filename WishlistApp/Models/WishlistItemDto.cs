@@ -13,4 +13,15 @@ namespace WishlistApp.Models
         public bool IsClaimable { get; set; }
         public bool IsClaimedByMe { get; set; }
     }
+
+    public class WishlistViewDto
+    {
+        public bool IsMyWishlist { get; }
+        public IEnumerable<WishlistItemDto> WishlistItems { get; }
+        public WishlistViewDto(bool isMyWishlist, IEnumerable<WishlistItemDto> wishlistItems)
+        {
+            IsMyWishlist = isMyWishlist;
+            WishlistItems = wishlistItems;
+        }
+    }
 }
