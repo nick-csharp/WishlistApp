@@ -4,6 +4,7 @@ using Microsoft.Azure.Cosmos.Fluent;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using WishlistApp.Repositories;
 using WishlistApp.Services;
 
 namespace WishlistApp
@@ -27,6 +28,9 @@ namespace WishlistApp
                         .AddSingleton(s => GetCosmosClient(context))
                         .AddScoped<IWishlistService, WishlistService>()
                         .AddScoped<IWhanauService, WhanauService>()
+                        .AddScoped<IWishlistAuthorizationService, WishlistAuthorizationService>()
+                        .AddScoped<IWishlistRepository, WishlistRepository>()
+                        .AddScoped<IWhanauRepository, WhanauRepository>()
                 );
 
         private static CosmosClient GetCosmosClient(HostBuilderContext context)

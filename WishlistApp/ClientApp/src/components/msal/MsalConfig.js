@@ -16,7 +16,7 @@ const b2cPolicies = {
     forgotPassword: {
       authority:
         "https://wishlistsappb2c.b2clogin.com/wishlistsappb2c.onmicrosoft.com/B2C_1_reset",
-    }
+    },
   },
   authorityDomain: "wishlistsappb2c.b2clogin.com",
 };
@@ -26,11 +26,12 @@ const msalConfig = {
     clientId: "624f988c-fd38-461a-93f9-9be88085d9c8", // This is the ONLY mandatory field; everything else is optional.
     authority: b2cPolicies.authorities.signIn.authority, // Choose sign-up/sign-in user-flow as your default.
     knownAuthorities: [b2cPolicies.authorityDomain], // You must identify your tenant's domain as a known authority.
-    redirectUri: "https://localhost:44314/", // You must register this URI on Azure Portal/App Registration. Defaults to "window.location.href".
+    //redirectUri: "https://localhost:44314/", // You must register this URI on Azure Portal/App Registration. Defaults to "window.location.href".
+    //postLogoutRedirectUri: "https://localhost:44314/",
   },
   cache: {
     cacheLocation: "sessionStorage", // Configures cache location. "sessionStorage" is more secure, but "localStorage" gives you SSO.
-    storeAuthStateInCookie: false, // If you wish to store cache items in cookies as well as browser cache, set this to "true".
+    storeAuthStateInCookie: true, // If you wish to store cache items in cookies as well as browser cache, set this to "true".
   },
 };
 

@@ -13,5 +13,11 @@ namespace WishlistApp.Models
 
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
+
+        [JsonProperty(PropertyName = "whanauId")]
+        public string WhanauId { get; set; }
+
+        [JsonProperty(PropertyName = "objectId")]
+        public string ObjectId { get; set; }
     }
 }

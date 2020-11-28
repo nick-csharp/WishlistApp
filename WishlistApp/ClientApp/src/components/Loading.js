@@ -1,7 +1,6 @@
-﻿import React, { Component } from 'react';
+﻿import React, { Component } from "react";
 
-export class Loading extends Component {
-
+export default class Loading extends Component {
   render() {
     return (
       <div className="d-flex justify-content-center">
@@ -9,6 +8,6 @@ export class Loading extends Component {
           <span className="sr-only">Loading...</span>
         </div>
       </div>
-    )
+    );
   }
 }

@@ -23,6 +23,11 @@ namespace WishlistApp.Models
 		[JsonProperty(PropertyName = "claimedByUserId")]
 		public string ClaimedByUserId { get; set; }
 
+		public WishlistItem()
+        {
+
+        }
+
 		public WishlistItem(string userId, string description)
         {
 			Id = Guid.NewGuid().ToString();
@@ -30,6 +35,13 @@ namespace WishlistApp.Models
 			Description = description;
 			CreatedDate = DateTime.Now.ToString();
 			ClaimedByUserId = null;
+        }
+
+		public WishlistItem(WishlistItemDto dto)
+        {
+			Id = dto.Id;
+			UserId = dto.UserId;
+			Description = dto.Description;
         }
     }
 }
