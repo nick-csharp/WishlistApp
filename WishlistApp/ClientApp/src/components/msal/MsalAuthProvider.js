@@ -26,7 +26,6 @@ export function withAuth(HocComponent) {
       this.login = this.login.bind(this);
       this.logout = this.logout.bind(this);
       this.getAccessToken = this.getAccessToken.bind(this);
-      //this.normalizeError = this.normalizeError.bind(this);
       this.handleResponse = this.handleResponse.bind(this);
       this.handleError = this.handleError.bind(this);
       this.appendAccessToken = this.appendAccessToken.bind(this);
@@ -36,12 +35,6 @@ export function withAuth(HocComponent) {
         .handleRedirectPromise()
         .then(this.handleResponse)
         .catch(this.handleError);
-    }
-
-    componentWillReceiveProps() {
-      // handle login of already authed people
-      // edit: doens't work :(
-      this.handleResponse();
     }
 
     handleResponse(resp) {
@@ -92,7 +85,6 @@ export function withAuth(HocComponent) {
       if (!options.headers) {
         options.headers = new Headers();
       }
-      debugger;
       options.headers.append("Authorization", bearer);
     }
 
@@ -111,6 +103,11 @@ export function withAuth(HocComponent) {
             console.error(error);
           }
         });
+
+      if (!token || !token.accessToken) {
+        console.log("token was missing - acquiring token using redirect");
+        this.msalAuth.acquireTokenRedirect(request);
+      }
 
       return token.accessToken;
     }

@@ -22,7 +22,7 @@ export default class Whanau extends Component {
     return (
       <div className="container mt-4">
         <div className="row justify-content-center">
-          <div className="col-md-6">
+          <div className="col-md-8">
             <div className="card">
               {this.state.loading ? (
                 <Loading />
@@ -52,7 +52,6 @@ export default class Whanau extends Component {
   async populateWhanauData() {
     const options = {
       method: "GET",
-      headers: null,
     };
     await this.context.appendAccessToken(options);
     const response = await fetch("api/whanau", options);

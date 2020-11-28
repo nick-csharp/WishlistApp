@@ -1,8 +1,10 @@
-﻿import React, { Component } from 'react';
+﻿import React, { Component } from "react";
 import { Link } from "@reach/router";
+import { MsalAuthContext } from "./msal/MsalAuthProvider";
 
-export class NavMenu extends Component {
+export default class NavMenu extends Component {
   static displayName = NavMenu.name;
+  static contextType = MsalAuthContext;
 
   getEmoji() {
     const useOtherEmoji = Math.random() > 0.8;
@@ -12,46 +14,39 @@ export class NavMenu extends Component {
       var index = Math.floor(Math.random() * emojis.length);
       return emojis[index];
     } else {
-      return ("🎄");
-    }   
+      return "🎄";
+    }
   }
 
   render() {
-    const user = null;
-    const logOutUser = null;
+    const isAuthenticated = this.context.isAuthenticated;
+    const account = this.context.account;
+    const logout = this.context.logout;
+    const welcomeMessage = "Welcome " + account.name + "!";
 
     return (
       <nav className="navbar navbar-expand navbar-dark color-nav">
-        <div className="container-fluid">
-          <div className="navbar-brand">
-            {this.getEmoji()} Wishlists
-          </div>
-          <div className="navbar-nav ml-auto">
-            {!user && (
-              <Link className="nav-item nav-link" to="/">
+        <div className="navbar-brand">{this.getEmoji()} Wishlists</div>
+        {isAuthenticated && (
+          <React.Fragment>
+            <div className="navbar-brand abs">
+              <span>{welcomeMessage}</span>
+            </div>
+            <div className="navbar-nav ml-auto">
+              <Link className="nav-item nav-link" to="/whanau">
                 Whānau
               </Link>
-            )}
-            {/*!user && (
-              <Link className="nav-item nav-link" to="/authtest">
-                Auth test
-              </Link>
-            )*/}
-            {user && (
               <Link
                 className="nav-item nav-link"
-                to="/login"
-                onClick={(e) => logOutUser(e)}
+                to="/logout"
+                onClick={(e) => logout(e)}
               >
-                log out
+                Log out
               </Link>
-            )}
-          </div>
-        </div>
+            </div>
+          </React.Fragment>
+        )}
       </nav>
     );
   }
 }
-
-
-// <nav className="site-nav family-sans navbar  bg-primary navbar-dark higher"> 
