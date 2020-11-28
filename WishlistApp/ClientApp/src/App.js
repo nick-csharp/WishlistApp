@@ -5,7 +5,6 @@ import "./custom.css";
 import Layout from "./components/Layout";
 import Whanau from "./components/Whanau";
 import Wishlist from "./components/Wishlist";
-import AuthReply from "./components/AuthReply";
 import Landing from "./components/Landing";
 import { withAuth } from "./components/msal/MsalAuthProvider";
 
