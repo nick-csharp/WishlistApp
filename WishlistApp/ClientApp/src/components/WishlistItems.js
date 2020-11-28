@@ -201,7 +201,7 @@ export default class WishlistItems extends Component {
     }
 
     // No wishlist? Coal for you!
-    if (wishlist.length == 0) {
+    if (wishlist.length === 0) {
       return (
         <li className="list-group-item">
           <div className="d-flex">
