@@ -12,6 +12,7 @@ namespace WishlistApp.Repositories
 {
     public interface IWhanauRepository 
     {
+        Task<Person> GetPersonAsync(string personId, string whanauId);
         Task<Person> GetPersonByObjectIdAsync(string objectId);
         Task<IEnumerable<Person>> GetWhanauAsync(string whanauId);
     }
@@ -33,6 +34,23 @@ namespace WishlistApp.Repositories
             _containerId = configuration.GetValue<string>("UsersContainerId");
 
             _container = cosmosClient.GetContainer(_databaseId, _containerId);
+        }
+
+        public async Task<Person> GetPersonAsync(string personId, string whanauId)
+        {
+            try
+            {
+                var response = await _container.ReadItemAsync<Person>(personId, new PartitionKey(whanauId));
+                _logger.LogInformation("Request charge of get operation: {0}", response.RequestCharge);
+                _logger.LogInformation("StatusCode of operation: {0}", response.StatusCode);
+
+                return response.Resource;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Exception while getting person.");
+                throw;
+            }
         }
 
         public async Task<Person> GetPersonByObjectIdAsync(string objectId)

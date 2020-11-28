@@ -4,7 +4,7 @@ import Loading from "./Loading";
 import Emoji from "./Emoji";
 import { MsalAuthContext } from "./msal/MsalAuthProvider";
 
-export class Wishlist extends Component {
+export default class Wishlist extends Component {
   static contextType = MsalAuthContext;
   constructor(props) {
     super(props);
@@ -12,10 +12,9 @@ export class Wishlist extends Component {
       wishlistData: [],
       newItemDescription: "",
       isLoading: true,
-      isMe: false,
+      isMyWishlist: false,
+      wishlistOwnerName: "",
     };
-
-    debugger;
 
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
@@ -31,14 +30,15 @@ export class Wishlist extends Component {
     await this.context.appendAccessToken(options);
 
     const response = await fetch(
-      `api/person/${this.props.personId}/wishlist?requestingUserId=${this.props.location.state.userId}`,
+      `api/person/${this.props.personId}/wishlist`,
       options
     );
     const data = await response.json();
     this.setState({
-      isMe: data.isMyWishlist,
+      wishlistOwnerName: data.wishlistOwnerName,
+      isMyWishlist: data.isMyWishlist,
       wishlistData: data.wishlistItems,
-      isLoading: false
+      isLoading: false,
     });
   }
 
@@ -62,7 +62,7 @@ export class Wishlist extends Component {
 
     var options = {
       method: "POST",
-      headers: new Headers({"Content-Type": "application/json"}),
+      headers: new Headers({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         userId: personId,
         description: this.state.newItemDescription,
@@ -87,65 +87,72 @@ export class Wishlist extends Component {
       });
   }
 
-
   render() {
-    const name = this.props.location.state.person.name;
+    const name = this.state.wishlistOwnerName;
+    var body;
+
+    if (this.state.isLoading) {
+      body = () => {
+        return <Loading />;
+      };
+    } else {
+      body = () => {
+        return (
+          <div className="card">
+            <div className="card-header">
+              <h1 className="font-weight-light text-center">
+                {name}'s Wishlist
+              </h1>
+            </div>
+
+            {this.state.isMyWishlist ? (
+              <div className="card-body">
+                <form
+                  className="formgroup"
+                  autoComplete="off"
+                  onSubmit={this.handleSubmit}
+                >
+                  <div className="input-group">
+                    <input
+                      type="text"
+                      className="form-control"
+                      name="newItemDescription"
+                      placeholder="Add a wishlist item"
+                      aria-describedby="buttonAdd"
+                      value={this.state.newItemDescription}
+                      onChange={this.handleChange}
+                    />
+                    <div className="input-group-append">
+                      <button
+                        type="submit"
+                        className="btn btn-sm btn-outline-secondary emoji-button"
+                        title="Add"
+                        id="buttonAdd"
+                      >
+                        <Emoji symbol="➕" label="plus" />
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            ) : null}
+
+            <div className="card-body">
+              <WishlistItems
+                wishlistData={this.state.wishlistData}
+                personId={this.props.personId}
+                isMyWishlist={this.state.isMyWishlist}
+              />
+            </div>
+          </div>
+        );
+      };
+    }
+
     return (
       <div className="container mt-4">
         <div className="row justify-content-center">
-          <div className="">
-            <div className="card">
-              <div className="card-header">
-                <h1 className="font-weight-light text-center">
-                  {name}'s Wishlist
-                </h1>
-              </div>
-
-              {this.state.isMe ? (
-                <div className="card-body">
-                  <form
-                    className="formgroup"
-                    autoComplete="off"
-                    onSubmit={this.handleSubmit}
-                  >
-                    <div className="input-group">
-                      <input
-                        type="text"
-                        className="form-control"
-                        name="newItemDescription"
-                        placeholder="Add a wishlist item"
-                        aria-describedby="buttonAdd"
-                        value={this.state.newItemDescription}
-                        onChange={this.handleChange}
-                      />
-                      <div className="input-group-append">
-                        <button
-                          type="submit"
-                          className="btn btn-sm btn-outline-secondary emoji-button"
-                          title="Add"
-                          id="buttonAdd"
-                        >
-                          <Emoji symbol="➕" label="plus" />
-                        </button>
-                      </div>
-                    </div>
-                  </form>
-                </div>
-              ) : null}
-
-              <div className="card-body">
-                {this.state.isLoading ? (
-                  <Loading />
-                ) : (
-                  <WishlistItems
-                    wishlistData={this.state.wishlistData}
-                    personId={this.props.personId}
-                    isMe={this.state.isMe}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
+          <div className="col-md-10">{body()}</div>
         </div>
       </div>
     );

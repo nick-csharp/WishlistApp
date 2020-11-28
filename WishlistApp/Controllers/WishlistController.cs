@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WishlistApp.Models;
 using WishlistApp.Services;
@@ -38,7 +36,7 @@ namespace WishlistApp.Controllers
                 return Forbid();
             }
 
-            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, authResult.Person.Id);
+            var result = await _wishlistService.GetAllWishlistItemsAsync(personId, authResult.Person.Id, authResult.Person.WhanauId);
 
             return result;
         }

@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace WishlistApp.Models
+﻿namespace WishlistApp.Models
 {
     public class WishlistItemDto
     {
@@ -12,16 +7,5 @@ namespace WishlistApp.Models
         public string Description { get; set; }
         public bool IsClaimable { get; set; }
         public bool IsClaimedByMe { get; set; }
-    }
-
-    public class WishlistViewDto
-    {
-        public bool IsMyWishlist { get; }
-        public IEnumerable<WishlistItemDto> WishlistItems { get; }
-        public WishlistViewDto(bool isMyWishlist, IEnumerable<WishlistItemDto> wishlistItems)
-        {
-            IsMyWishlist = isMyWishlist;
-            WishlistItems = wishlistItems;
-        }
     }
 }

@@ -15,7 +15,7 @@ namespace WishlistApp.Services
 {
     public interface IWishlistService
     {
-        Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId);
+        Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId, string whanauId);
         Task<WishlistItemDto> AddWishlistItemAsync(WishlistItemDto wishlistItemDto);
         Task UpdateWishlistItemDescriptionAsync(WishlistItemDto wishlistItemDto);
         Task DeleteWishlistItemAsync(WishlistItemDto wishlistItemDto);
@@ -26,17 +26,20 @@ namespace WishlistApp.Services
     {
         private readonly ILogger<WishlistService> _logger;
         private readonly IWishlistRepository _wishlistRepository;
+        private readonly IWhanauRepository _whanauRepository;
 
-        public WishlistService(ILogger<WishlistService> logger, IWishlistRepository wishlistRepository)
+        public WishlistService(ILogger<WishlistService> logger, IWishlistRepository wishlistRepository, IWhanauRepository whanauRepository)
         {
             _logger = logger;
             _wishlistRepository = wishlistRepository;
+            _whanauRepository = whanauRepository;
         }
         
-        public async Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId)
+        public async Task<WishlistViewDto> GetAllWishlistItemsAsync(string wishlistOwnerId, string currentUserId, string whanauId)
         {
             try
             {
+                var wishlistOwner = await _whanauRepository.GetPersonAsync(wishlistOwnerId, whanauId);
                 var wishlistItems = await _wishlistRepository.GetAllWishlistItemsAsync(wishlistOwnerId);
 
                 var requesterIsOwner = wishlistOwnerId == currentUserId;
@@ -51,7 +54,7 @@ namespace WishlistApp.Services
                         IsClaimedByMe = w.ClaimedByUserId == currentUserId && !requesterIsOwner
                     });
 
-                return new WishlistViewDto(requesterIsOwner, dtos);
+                return new WishlistViewDto(wishlistOwner.Name, requesterIsOwner, dtos);
             }
             catch (Exception e)
             {

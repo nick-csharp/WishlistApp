@@ -19,7 +19,7 @@ export default class WishlistItems extends Component {
   async claimOrUnclaimItem(e, item, isClaim) {
     e.preventDefault();
 
-    if (this.props.isMe) return;
+    if (this.props.isMyWishlist) return;
 
     var confirmUnclaimText =
       "Are you sure you want to unclaim this? Someone else might claim it!";
@@ -29,7 +29,7 @@ export default class WishlistItems extends Component {
 
     if (isClaim && item.isClaimable) {
       // do claim
-      requestUri += `claim?requestingUserId=${this.props.userId}`;
+      requestUri += `claim`;
       newIsClaimedByMe = true;
     } else if (
       !isClaim &&
@@ -37,7 +37,7 @@ export default class WishlistItems extends Component {
       window.confirm(confirmUnclaimText)
     ) {
       // do unclaim
-      requestUri += `unclaim?requestingUserId=${this.props.userId}`;
+      requestUri += `unclaim`;
       newIsClaimable = true;
     } else {
       // invalid
@@ -57,9 +57,9 @@ export default class WishlistItems extends Component {
       headers: new Headers({ "Content-Type": "application/json" }),
       body: JSON.stringify({
         id: item.id,
-        userId: this.props.personId
+        userId: this.props.personId,
       }),
-    }
+    };
 
     await this.context.appendAccessToken(options);
     fetch(requestUri, options)
@@ -99,15 +99,14 @@ export default class WishlistItems extends Component {
       "Are you sure you want to delete this? Someone might have got it for you already!"
     );
     if (shouldDelete) {
-
       var options = {
         method: "DELETE",
         headers: new Headers({ "Content-Type": "application/json" }),
         body: JSON.stringify({
           id: item.id,
-          userId: this.props.personId
+          userId: this.props.personId,
         }),
-      }
+      };
       await this.context.appendAccessToken(options);
       fetch(`api/person/${this.props.personId}/wishlist/${item.id}`, options)
         .then((response) => {
@@ -130,7 +129,7 @@ export default class WishlistItems extends Component {
   }
 
   getButtons(item) {
-    if (this.props.isMe) {
+    if (this.props.isMyWishlist) {
       return (
         <React.Fragment>
           <button
@@ -194,16 +193,31 @@ export default class WishlistItems extends Component {
   }
 
   render() {
+    const isMine = this.props.isMyWishlist;
     const wishlist = this.state.wishlistData;
 
     if (!wishlist) {
       return null;
     }
 
+    // No wishlist? Coal for you!
+    if (wishlist.length == 0) {
+      return (
+        <li className="list-group-item">
+          <div className="d-flex">
+            <section className="align-self-center item-text">
+              There's nothing here, looks like someone is getting coal for
+              Christmas!
+            </section>
+          </div>
+        </li>
+      );
+    }
+
     const getClaimStyle = (item) => {
-      if (!this.props.isMe && item.isClaimedByMe) {
+      if (!isMine && item.isClaimedByMe) {
         return "claimed-by-me";
-      } else if (!this.props.isMe && !item.isClaimable) {
+      } else if (!isMine && !item.isClaimable) {
         return "claimed-by-other";
       } else {
         return "unclaimed";
@@ -222,6 +236,7 @@ export default class WishlistItems extends Component {
                 className="btn-group"
                 role="group"
                 aria-label="Wishlist Options"
+                style={{ paddingLeft: "20px" }}
               >
                 {this.getButtons(item)}
               </div>
