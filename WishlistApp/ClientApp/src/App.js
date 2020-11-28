@@ -14,7 +14,6 @@ class RootApp extends Component {
       <Layout>
         <Router>
           <Landing path="/" />
-          <AuthReply path="/authreply" />
           <Whanau path="/whanau" />
           <Wishlist path="/person/:personId/wishlist" />
         </Router>
